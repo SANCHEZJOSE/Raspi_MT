@@ -10,18 +10,9 @@ t6=t6in;
   bcm2835_gpio_fsel(pinDRDY,BCM2835_GPIO_FSEL_INPT);
   // seleciona el CS como salida(control de ads1256)
   bcm2835_gpio_fsel(pinCS,BCM2835_GPIO_FSEL_OUTP);
+  // seleciona pin 12 para LED
   bcm2835_gpio_fsel(12,BCM2835_GPIO_FSEL_OUTP);
-
-  if (usoReset) {
-    // selecciona RESET como salida
-  bcm2835_gpio_fsel(pinReset,BCM2835_GPIO_FSEL_OUTP);
-   bcm2835_gpio_write(pinReset,LOW);
-   bcm2835_delayMicroseconds(100000);
-    // reset a high
-  bcm2835_gpio_write(pinReset,HIGH);
-  }
-
-  // Voltage Reference
+    // Voltage Reference
   _VREF= vref;
 
   // Default conversion factor
@@ -31,10 +22,23 @@ t6=t6in;
   bcm2835_spi_begin();
   bcm2835_spi_setBitOrder(BCM2835_SPI_BIT_ORDER_MSBFIRST); 
   bcm2835_spi_setDataMode(BCM2835_SPI_MODE1);
-  bcm2835_spi_chipSelect(3);//3 control personalizado de CS 
+  bcm2835_spi_chipSelect(0);//0 control de CS0 de la GPIO,3 control personalizado de CS 
   bcm2835_spi_setClockDivider(clockspdMhz);
   //SPI.beginTransaction(SPISettings(clockspdMhz * 1000000/4, MSBFIRST, SPI_MODE1));
-  CSON();
+  //CSON();
+  if (usoReset) {
+    // selecciona RESET como salida
+    bcm2835_gpio_fsel(pinReset,BCM2835_GPIO_FSEL_OUTP);
+    bcm2835_gpio_write(pinReset,LOW);
+    bcm2835_delayMicroseconds(1000);
+    // reset a high
+    bcm2835_gpio_write(pinReset,HIGH);
+    bcm2835_delayMicroseconds(100000);
+    bcm2835_spi_transfer(RESET);
+    cm2835_delayMicroseconds(2000);
+  }
+
+
 }
 
 void ADS1256::writeRegister(unsigned char reg, unsigned char wdata) {
@@ -230,7 +234,7 @@ void ADS1256::CSON() {
 
 void ADS1256::CSOFF() {
  bcm2835_gpio_write(pinCS,HIGH);
-}  // digitalWrite(_CS, HIGH); }
+}
 
 void ADS1256::waitDRDY() {
 

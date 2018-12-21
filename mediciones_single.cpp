@@ -90,7 +90,7 @@ float recolecta_Data(ADS1256 & ads24,ADS1115 & ads16,float ** data)
 				estado=false;}
 				}
 		if(estado){ bcm2835_gpio_write(12,HIGH);}
-		else{ bcm2835_gpio_write(12,LOW);}
+		else{ bcm2835_gpio_write(12,LOW);}//Pin 12 LED
 	    i++;
 		}
 		clock_gettime( CLOCK_REALTIME, &ts2 );
