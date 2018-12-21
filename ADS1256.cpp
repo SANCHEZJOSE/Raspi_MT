@@ -35,7 +35,7 @@ t6=t6in;
     bcm2835_gpio_write(pinReset,HIGH);
     bcm2835_delayMicroseconds(100000);
     bcm2835_spi_transfer(RESET);
-    cm2835_delayMicroseconds(2000);
+    bcm2835_delayMicroseconds(2000);
   }
 
 
