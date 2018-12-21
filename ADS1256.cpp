@@ -20,42 +20,42 @@ t6=t6in;
 
   // Start SPI en BCM2835
   bcm2835_spi_begin();
-  bcm2835_spi_setBitOrder(BCM2835_SPI_BIT_ORDER_MSBFIRST); 
+  bcm2835_spi_setBitOrder(BCM2835_SPI_BIT_ORDER_MSBFIRST);
   bcm2835_spi_setDataMode(BCM2835_SPI_MODE1);
-  bcm2835_spi_chipSelect(0);//0 control de CS0 de la GPIO,3 control personalizado de CS 
+  bcm2835_spi_chipSelect(3);//0 control de CS0 de la GPIO,3 control personalizado de CS
   bcm2835_spi_setClockDivider(clockspdMhz);
   //SPI.beginTransaction(SPISettings(clockspdMhz * 1000000/4, MSBFIRST, SPI_MODE1));
-  //CSON();
+  CSON();
   if (usoReset) {
     // selecciona RESET como salida
     bcm2835_gpio_fsel(pinReset,BCM2835_GPIO_FSEL_OUTP);
     bcm2835_gpio_write(pinReset,LOW);
-    bcm2835_delayMicroseconds(1000);
+    bcm2835_delayMicroseconds(10000);
     // reset a high
     bcm2835_gpio_write(pinReset,HIGH);
-    bcm2835_delayMicroseconds(100000);
+    bcm2835_delayMicroseconds(1000000);
     bcm2835_spi_transfer(RESET);
-    bcm2835_delayMicroseconds(2000);
-  }
-
+    bcm2835_delayMicroseconds(200000);
+	}
+CSOFF();
 
 }
 
 void ADS1256::writeRegister(unsigned char reg, unsigned char wdata) {
-  //CSON();
+  CSON();
   bcm2835_spi_transfer(WREG | reg);
   bcm2835_spi_transfer(0);
   bcm2835_spi_transfer(wdata);
   bcm2835_delayMicroseconds(t11);  // t11 delay (4*tCLKIN) after WREG command,
                                   // 400Mhz avr clock more
                                   // faster that 7.68 Mhz ADS1256 master clock
-  //CSOFF();
+  CSOFF();
 }
 
 unsigned char ADS1256::readRegister(unsigned char reg) {
   unsigned char readValue;
 
-  //CSON();
+  CSON();
   bcm2835_spi_transfer(RREG | reg);
   bcm2835_spi_transfer(0);
   bcm2835_delayMicroseconds(t6);  // t6 delay (50*tCLKIN), 16Mhz avr clock is
@@ -63,17 +63,17 @@ unsigned char ADS1256::readRegister(unsigned char reg) {
                                     // ADS1256 master clock
   readValue = bcm2835_spi_transfer(0);
   bcm2835_delayMicroseconds(t11);  // t11 delay
-  //CSOFF();
+  CSOFF();
 
   return readValue;
 }
 
 void ADS1256::sendCommand(unsigned char reg) {
-  //CSON();
+  CSON();
   waitDRDY();
   bcm2835_spi_transfer(reg);
   bcm2835_delayMicroseconds(t11);  // t11
-  //CSOFF();
+  CSOFF();
 }
 
 void ADS1256::setConversionFactor(float val) { _conversionFactor = val; }
@@ -92,11 +92,11 @@ void ADS1256::setConversionFactor(float val) { _conversionFactor = val; }
 }*/
 
 float ADS1256::readChannel() {
-  //CSON();
+  CSON();
   bcm2835_spi_transfer(RDATA);
   bcm2835_delayMicroseconds(t6);  // t6 delay
   float adsCode = read_float32();
-  //CSOFF();
+  CSOFF();
   return ((adsCode / 0x7FFFFF) * ((2 * _VREF) / (float)_pga)) *
          _conversionFactor;
 }
@@ -203,11 +203,11 @@ void ADS1256::setChannel(unsigned char AIN_P, unsigned char AIN_N) {
 
   MUX_CHANNEL = MUXP | MUXN;
 
-  //CSON();
+  CSON();
   writeRegister(MUX, MUX_CHANNEL);
   sendCommand(SYNC);
   sendCommand(WAKEUP);
-  //CSOFF();
+  CSOFF();
 }
 
 void ADS1256::begin(unsigned char drate, unsigned char gain,bool buffenable) {
@@ -237,9 +237,6 @@ void ADS1256::CSOFF() {
 }
 
 void ADS1256::waitDRDY() {
-
   while (bcm2835_gpio_lev(pinDRDY))
   ;
-	 }
-   
-
+}
