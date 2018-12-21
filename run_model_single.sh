@@ -2,7 +2,7 @@
 # programa que corre el MT
 #Paso 1, Compila
 rm -vf prog.o
-g++ --std=c++0x -Wall -o prog.o mediciones_single.cpp ADS1115.cpp ADS1256.cpp ini/ini.c ini/cpp/INIReader.cpp -lbcm2835
+g++ -Wall -o prog.o mediciones_single.cpp ADS1115.cpp ADS1256.cpp ini/ini.c ini/cpp/INIReader.cpp -lbcm2835
 echo "Modelo compilado"
 # Paso 2, Generar la fecha para el nombre de datos.txt
 fecha=`date +%Y%m%d_%H:%M:%S`
