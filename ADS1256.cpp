@@ -227,6 +227,26 @@ void ADS1256::begin(unsigned char drate, unsigned char gain,bool buffenable) {
   waitDRDY();
     // wait ADS1256 to settle after self calibration
 }
+void ADS1256::reboot(unsigned char drate, unsigned char gain) {
+  CSON();
+    bcm2835_gpio_write(pinReset,LOW);
+    bcm2835_delayMicroseconds(10000);
+    // reset a high
+    bcm2835_gpio_write(pinReset,HIGH);
+    bcm2835_delayMicroseconds(1000000);
+    bcm2835_spi_transfer(RESET);
+    bcm2835_delayMicroseconds(200000);
+CSOFF();
+  sendCommand(SDATAC);  // send out SDATAC command to stop continous reading mode.
+  writeRegister(DRATE, drate);  // write data rate register
+  uint8_t bytemask =0x07;//B00000111;
+  uint8_t adcon = readRegister(ADCON);
+  uint8_t byte2send = (adcon & ~bytemask) | gain;
+  writeRegister(ADCON, byte2send);
+  sendCommand(SELFCAL);  // perform self calibration
+  waitDRDY();
+    // wait ADS1256 to settle after self calibration
+}
 
 void ADS1256::CSON() {
   bcm2835_gpio_write(pinCS,LOW);

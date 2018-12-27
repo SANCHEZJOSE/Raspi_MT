@@ -100,6 +100,8 @@ float recolecta_Data(ADS1256 & ads24,ADS1115 & ads16,float ** data)
 		}
 		if(check_timeout){
 			printf("TimeOUT!!\nReiniciando...");fflush(stdout);
+			ads24.reboot(ADS1256_DRATE_500SPS,ADS1256_GAIN_1);///Configuracion
+			printf("Retomando lectura\n");
 			}
 		else{
 			flag=filas;}
