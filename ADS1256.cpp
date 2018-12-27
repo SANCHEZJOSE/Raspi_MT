@@ -243,9 +243,9 @@ bool ADS1256::waitDRDY(unsigned int micros) {
 		gettimeofday (&tiempo, NULL) ;
 		uint64_t tiempoActual=(uint64_t)tiempo.tv_sec * (uint64_t)1000000 + (uint64_t)(tiempo.tv_usec);
 		if((uint32_t)(tiempoActual - tiempoInicial) >= micros)
-			return false; //Timeout
+			return true; //Timeout
 		}
-	return true;//se cumplio dentro del tiempo
+	return false;//se cumplio dentro del tiempo
 }
 void ADS1256::waitDRDY() {
 	while(bcm2835_gpio_lev(pinDRDY));
