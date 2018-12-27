@@ -236,7 +236,17 @@ void ADS1256::CSOFF() {
  bcm2835_gpio_write(pinCS,HIGH);
 }
 
+bool ADS1256::waitDRDY(unsigned int micros) {
+	gettimeofday(&tiempo,NULL);
+	uint64_t tiempoInicial=(uint64_t)tiempo.tv_sec * (uint64_t)1000000 + (uint64_t)(tiempo.tv_usec) ;
+	while(bcm2835_gpio_lev(pinDRDY)){
+		gettimeofday (&tiempo, NULL) ;
+		uint64_t tiempoActual=(uint64_t)tiempo.tv_sec * (uint64_t)1000000 + (uint64_t)(tiempo.tv_usec);
+		if((uint32_t)(tiempoActual - tiempoInicial) >= micros)
+			return false; //Timeout
+		}
+	return true;//se cumplio dentro del tiempo
+}
 void ADS1256::waitDRDY() {
-  while (bcm2835_gpio_lev(pinDRDY))
-  ;
+	while(bcm2835_gpio_lev(pinDRDY));
 }
