@@ -226,7 +226,7 @@ void ADS1256::setChannel_timeout(unsigned char AIN_P, unsigned char AIN_N){
     std::mutex m;
     std::condition_variable cv;
 
-    std::thread t([&cv,AIN_P , AIN_N ]){
+    std::thread t([&cv,AIN_P , AIN_N ](){
       setChannel( AIN_P , AIN_N); // aqui molesta el ")" final en la compilacion. 
 				// ADS1256.cpp:230:32: error: ‘this’ was not captured for this lambda function
 				//       setChannel( AIN_P , AIN_N);
@@ -239,11 +239,11 @@ void ADS1256::setChannel_timeout(unsigned char AIN_P, unsigned char AIN_N){
 
     {
         std::unique_lock<std::mutex> l(m);
-        if(cv.wait_for(l, 1s) == std::cv_status::timeout) 
+        if(cv.wait_for(l,std::chrono::seconds(1)) == std::cv_status::timeout) 
             throw std::runtime_error("Timeout for change channel");
     }
 
-    return 1; 
+    //return 1;
 }
 
 
