@@ -2,6 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <bcm2835.h>
+#include <iostream>
+#include <chrono>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+
+//using namespace std::chrono_literals;
+
 
 ADS1256::ADS1256(int clockspdMhz, float vref, bool usoReset,float t11in,float t6in) {
 t11=t11in;
@@ -83,11 +91,9 @@ void ADS1256::setConversionFactor(float val) { _conversionFactor = val; }
   //CSON();
   bcm2835_spi_transfer(RDATA);
   bcm2835_delayMicroseconds(t6);  // t6 delay
-
   _highByte = bcm2835_spi_transfer(WAKEUP);
   _midByte = bcm2835_spi_transfer(WAKEUP);
   _lowByte = bcm2835_spi_transfer(WAKEUP);
-
   //CSOFF();
 }*/
 
@@ -131,14 +137,13 @@ float ADS1256::read_float32() {
   long value = read_int32();
   return (float)value;
 }
-
 // Channel switching for single ended mode. Negative input channel are
 // automatically set to AINCOM
 void ADS1256::setChannel(unsigned char channel) { setChannel(channel, -1); }
 
 // Channel Switching for differential mode. Use -1 to set input channel to
 // AINCOM
-void ADS1256::setChannel(unsigned char AIN_P, unsigned char AIN_N) {
+void ADS1256::setChannel(unsigned char AIN_P, unsigned char AIN_N ) {
   unsigned char MUX_CHANNEL;
   unsigned char MUXP;
   unsigned char MUXN;
@@ -209,6 +214,38 @@ void ADS1256::setChannel(unsigned char AIN_P, unsigned char AIN_N) {
   sendCommand(WAKEUP);
   CSOFF();
 }
+
+
+
+// modificardo de Channel con timeout
+// Channel switching for single ended mode. Negative input channel are
+// automatically set to AINCOM
+void ADS1256::setChannel_timeout(unsigned char channel) { setChannel_timeout(channel, -1); }
+//
+void ADS1256::setChannel_timeout(unsigned char AIN_P, unsigned char AIN_N){
+    std::mutex m;
+    std::condition_variable cv;
+
+    std::thread t([&cv,AIN_P , AIN_N ](){
+      setChannel( AIN_P , AIN_N); // aqui molesta el ")" final en la compilacion. 
+				// ADS1256.cpp:230:32: error: ‘this’ was not captured for this lambda function
+				//       setChannel( AIN_P , AIN_N);
+				//                                ^
+		
+      cv.notify_one();
+    });
+
+    t.detach();
+
+    {
+        std::unique_lock<std::mutex> l(m);
+        if(cv.wait_for(l, 1s) == std::cv_status::timeout) 
+            throw std::runtime_error("Timeout for change channel");
+    }
+
+    return 1; 
+}
+
 
 void ADS1256::begin(unsigned char drate, unsigned char gain,bool buffenable) {
   _pga = 1 << gain;
